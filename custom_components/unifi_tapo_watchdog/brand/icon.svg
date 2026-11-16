@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256">
+  <!-- UniFi Tapo Watchdog: a camera, and a badge that brings it back -->
+  <rect x="0" y="0" width="256" height="256" rx="44" fill="#41BDF5" stroke="none"/>
+  <!-- camera body and lens -->
+  <rect x="40" y="72" width="128" height="92" rx="18" fill="#FFFFFF" stroke="none"/>
+  <path d="M168 102 L214 78 L214 158 L168 134 Z" fill="#FFFFFF" stroke="none"/>
+  <circle cx="104" cy="118" r="27" fill="#41BDF5" stroke="none"/>
+  <circle cx="104" cy="118" r="13" fill="#FFFFFF" stroke="none"/>
+  <!-- badge: reconnect (mdi:refresh) -->
+  <circle cx="188" cy="188" r="46" fill="#41BDF5" stroke="none"/>
+  <circle cx="188" cy="188" r="38" fill="#FFFFFF" stroke="none"/>
+  <g transform="translate(161 161) scale(2.25)" fill="#41BDF5" stroke="none">
+    <path d="M17.65,6.35C16.2,4.9 14.21,4 12,4A8,8 0 0,0 4,12A8,8 0 0,0 12,20C15.73,20 18.84,17.45 19.73,14H17.65C16.83,16.33 14.61,18 12,18A6,6 0 0,1 6,12A6,6 0 0,1 12,6C13.66,6 15.14,6.69 16.22,7.78L13,11H20V4L17.65,6.35Z"/>
+  </g>
+</svg>
