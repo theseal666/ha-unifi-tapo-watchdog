@@ -1,0 +1,100 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "UniFi Tapo Watchdog",
+        "description": "Logga in på din UniFi-konsol (UCG, UDM, UDR). Ett lokalt konto med adminrätt i Network räcker.",
+        "data": {
+          "host": "Adress till konsolen",
+          "username": "Användarnamn",
+          "password": "Lösenord",
+          "site": "Site",
+          "verify_ssl": "Verifiera SSL-certifikat"
+        }
+      },
+      "cameras": {
+        "title": "Kameror och inställningar",
+        "description": "Välj kamerorna vakten ska hålla ett öga på. TP-Link/Tapo-enheter är förvalda.",
+        "data": {
+          "cameras": "Kameror",
+          "scan_interval": "Kontrollintervall",
+          "threshold_minutes": "Minuter nere innan vakten agerar",
+          "cooldown_minutes": "Minuter mellan åtgärder på samma kamera",
+          "max_actions_per_day": "Max antal åtgärder per kamera och dygn",
+          "probe_port": "Port att testa (RTSP = 554)",
+          "kick_enabled": "Kasta ut en tyst kamera från WiFi",
+          "power_off_seconds": "Sekunder utan ström vid omstart",
+          "notify_service": "Notistjänst (valfritt, t.ex. notify.mobile_app_telefon)"
+        }
+      }
+    },
+    "error": {
+      "invalid_auth": "Fel användarnamn eller lösenord",
+      "cannot_connect": "Kan inte nå UniFi-konsolen"
+    },
+    "abort": {
+      "already_configured": "Den här konsolen är redan tillagd"
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Inställningar",
+        "data": {
+          "cameras": "Kameror",
+          "scan_interval": "Kontrollintervall",
+          "threshold_minutes": "Minuter nere innan vakten agerar",
+          "cooldown_minutes": "Minuter mellan åtgärder på samma kamera",
+          "max_actions_per_day": "Max antal åtgärder per kamera och dygn",
+          "probe_port": "Port att testa (RTSP = 554)",
+          "kick_enabled": "Kasta ut en tyst kamera från WiFi",
+          "power_off_seconds": "Sekunder utan ström vid omstart",
+          "notify_service": "Notistjänst (valfritt, t.ex. notify.mobile_app_telefon)"
+        }
+      },
+      "power": {
+        "title": "Strömbrytare (valfritt)",
+        "description": "Om en kamera inte ens är ansluten till WiFi hjälper det inte att kasta ut den. Välj en strömbrytare så bryter vakten strömmen en stund. Lämna tomt för att bara få en notis."
+      }
+    },
+    "abort": {
+      "cannot_connect": "Kan inte nå UniFi-konsolen"
+    }
+  },
+  "entity": {
+    "binary_sensor": {
+      "reachable": {
+        "name": "Nåbar"
+      }
+    },
+    "sensor": {
+      "status": {
+        "name": "Status",
+        "state": {
+          "ok": "OK",
+          "zombie": "På WiFi men svarar inte",
+          "offline": "Inte på WiFi"
+        }
+      },
+      "last_action": {
+        "name": "Senaste åtgärd"
+      },
+      "actions_today": {
+        "name": "Åtgärder i dag"
+      },
+      "cameras_down": {
+        "name": "Kameror nere"
+      }
+    },
+    "switch": {
+      "enabled": {
+        "name": "Vakt aktiv"
+      }
+    },
+    "button": {
+      "kick": {
+        "name": "Kasta ut från WiFi"
+      }
+    }
+  }
+}
