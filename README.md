@@ -89,3 +89,7 @@ reason: "svarar inte på port 554 sedan 5 min men är ansluten till WiFi"
   instance read the camera and have Frigate, Scrypted and the rest read from
   go2rtc.
 - ONVIF adds a connection of its own. Leave it off if you do not use pan/tilt.
+
+## License
+
+MIT — see [LICENSE](LICENSE).
