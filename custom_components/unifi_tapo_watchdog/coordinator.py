@@ -6,6 +6,8 @@ import asyncio
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 import logging
+import socket
+import time
 from typing import Any
 
 from homeassistant.config_entries import ConfigEntry
@@ -91,30 +93,30 @@ class CameraState:
         }
 
 
-async def _probe(ip: str, port: int, timeout: float, attempts: int) -> bool:
-    """True if the camera accepts a TCP connection on the port (RTSP by default).
+def _probe(ip: str, port: int, timeout: float, attempts: int) -> tuple[bool, str]:
+    """Try a TCP connection to the camera (RTSP by default). Blocking: run in an executor.
 
-    A busy camera on Wi-Fi sometimes misses a single connection attempt, so it
-    only counts as silent when every attempt fails.
+    Runs in a worker thread so a busy Home Assistant event loop cannot make a
+    camera look silent. A busy camera on Wi-Fi sometimes misses a single
+    attempt, so it only counts as silent when every attempt fails.
+    Returns (answered, what happened on each attempt).
     """
-    for attempt in range(max(1, attempts)):
-        if attempt:
-            await asyncio.sleep(PROBE_RETRY_DELAY)
+    notes: list[str] = []
+    for attempt in range(1, max(1, attempts) + 1):
+        if attempt > 1:
+            time.sleep(PROBE_RETRY_DELAY)
+        started = time.monotonic()
         try:
-            _, writer = await asyncio.wait_for(
-                asyncio.open_connection(ip, port), timeout=timeout
-            )
-        except (OSError, asyncio.TimeoutError):
-            continue
-        break
-    else:
-        return False
-    writer.close()
-    try:
-        await writer.wait_closed()
-    except OSError:
-        pass
-    return True
+            with socket.create_connection((ip, port), timeout=timeout):
+                pass
+        except TimeoutError:
+            notes.append(f"attempt {attempt}: no answer within {timeout:g} s")
+        except OSError as err:
+            notes.append(f"attempt {attempt}: {err.strerror or err} after {time.monotonic() - started:.1f} s")
+        else:
+            notes.append(f"attempt {attempt}: ok in {(time.monotonic() - started) * 1000:.0f} ms")
+            return True, "; ".join(notes)
+    return False, "; ".join(notes)
 
 
 class WatchdogCoordinator(DataUpdateCoordinator[dict[str, CameraState]]):
@@ -165,7 +167,12 @@ class WatchdogCoordinator(DataUpdateCoordinator[dict[str, CameraState]]):
             cam.signal = (conn or {}).get("signal")
             if rec.get("name"):
                 cam.name = rec["name"]
-            cam.reachable = bool(cam.ip) and await _probe(cam.ip, port, timeout, attempts)
+            if cam.ip:
+                cam.reachable, detail = await self.hass.async_add_executor_job(
+                    _probe, cam.ip, port, timeout, attempts
+                )
+            else:
+                cam.reachable, detail = False, "no IP address known"
 
             if cam.reachable:
                 cam.state = STATE_OK
@@ -176,6 +183,14 @@ class WatchdogCoordinator(DataUpdateCoordinator[dict[str, CameraState]]):
                 cam.notified_this_outage = False
             else:
                 cam.state = STATE_ZOMBIE if cam.associated else STATE_OFFLINE
+                if cam.bad_since is None:
+                    _LOGGER.info(
+                        "%s does not answer on %s:%s (%s, %s)",
+                        cam.name, cam.ip, port,
+                        "on Wi-Fi" if cam.associated else "not on Wi-Fi", detail,
+                    )
+                else:
+                    _LOGGER.debug("%s still silent: %s", cam.name, detail)
                 cam.bad_since = cam.bad_since or now
 
         await asyncio.gather(*(check(c) for c in self.cameras.values()))
