@@ -13,7 +13,7 @@ from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.aiohttp_client import async_create_clientsession
 from homeassistant.helpers import selector
 
-from .api import UniFiAuthError, UniFiClient, UniFiError
+from .api import UniFiAuthError, UniFiClient, UniFiError, UniFiRateLimited
 from .const import (
     CONF_CAMERAS,
     CONF_COOLDOWN,
@@ -82,9 +82,11 @@ async def _camera_choices(client: UniFiClient) -> tuple[list[dict[str, str]], li
 
 
 def _settings_schema(opts: dict[str, Any]) -> dict[Any, Any]:
-    num = lambda lo, hi, unit: selector.NumberSelector(  # noqa: E731
-        selector.NumberSelectorConfig(min=lo, max=hi, step=1, unit_of_measurement=unit, mode=selector.NumberSelectorMode.BOX)
-    )
+    def num(lo: int, hi: int, unit: str | None) -> selector.NumberSelector:
+        cfg = selector.NumberSelectorConfig(min=lo, max=hi, step=1, mode=selector.NumberSelectorMode.BOX)
+        if unit:  # Newer HA rejects unit_of_measurement=None
+            cfg["unit_of_measurement"] = unit
+        return selector.NumberSelector(cfg)
     return {
         vol.Required(CONF_SCAN_INTERVAL, default=opts.get(CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL)): num(20, 600, "s"),
         vol.Required(CONF_THRESHOLD, default=opts.get(CONF_THRESHOLD, DEFAULT_THRESHOLD)): num(1, 120, "min"),
@@ -117,6 +119,8 @@ class WatchdogConfigFlow(ConfigFlow, domain=DOMAIN):
                 self._choices, self._suggested, self._names = await _camera_choices(client)
             except UniFiAuthError:
                 errors["base"] = "invalid_auth"
+            except UniFiRateLimited:
+                errors["base"] = "rate_limited"
             except UniFiError:
                 errors["base"] = "cannot_connect"
             else:

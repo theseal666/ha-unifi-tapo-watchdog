@@ -23,6 +23,10 @@ class UniFiAuthError(UniFiError):
     """Login rejected."""
 
 
+class UniFiRateLimited(UniFiError):
+    """Too many logins in a short time (HTTP 429)."""
+
+
 class UniFiClient:
     """Talks to the Network application through the UniFi OS proxy."""
 
@@ -53,6 +57,10 @@ class UniFiClient:
 
     async def login(self) -> None:
         """Log in and keep the session cookie and CSRF token."""
+        # UniFi OS answers 403 to a login sent with a still-valid session
+        # cookie, so start from an empty cookie jar every time.
+        self._session.cookie_jar.clear()
+        self._csrf = None
         try:
             async with self._session.post(
                 f"{self._base}/api/auth/login",
@@ -64,6 +72,8 @@ class UniFiClient:
                 ssl=self._ssl,
                 timeout=aiohttp.ClientTimeout(total=15),
             ) as resp:
+                if resp.status == 429:
+                    raise UniFiRateLimited("UniFi: too many logins, try again in a minute")
                 if resp.status in (401, 403):
                     raise UniFiAuthError("UniFi rejected the username or password")
                 if resp.status != 200:

@@ -30,7 +30,8 @@
     },
     "error": {
       "invalid_auth": "Wrong username or password",
-      "cannot_connect": "Cannot reach the UniFi console"
+      "cannot_connect": "Cannot reach the UniFi console",
+      "rate_limited": "Too many login attempts — wait a minute and try again"
     },
     "abort": {
       "already_configured": "This console is already configured"

@@ -30,7 +30,8 @@
     },
     "error": {
       "invalid_auth": "Fel användarnamn eller lösenord",
-      "cannot_connect": "Kan inte nå UniFi-konsolen"
+      "cannot_connect": "Kan inte nå UniFi-konsolen",
+      "rate_limited": "För många inloggningsförsök — vänta en minut och försök igen"
     },
     "abort": {
       "already_configured": "Den här konsolen är redan tillagd"
