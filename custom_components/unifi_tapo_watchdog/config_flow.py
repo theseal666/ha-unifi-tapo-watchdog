@@ -186,7 +186,7 @@ class WatchdogOptionsFlow(OptionsFlow):
         # Keep cameras that are configured but currently unknown/offline selectable.
         for mac in current:
             if mac not in {c["value"] for c in choices}:
-                choices.append({"value": mac, "label": f"{opts[CONF_CAMERAS][mac]} ({mac}, syns inte nu)"})
+                choices.append({"value": mac, "label": f"{opts[CONF_CAMERAS][mac]} ({mac}, not seen now)"})
                 self._names[mac] = opts[CONF_CAMERAS][mac]
 
         if user_input is not None:

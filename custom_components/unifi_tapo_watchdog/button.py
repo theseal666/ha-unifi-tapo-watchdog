@@ -22,5 +22,5 @@ class KickButton(CameraEntity, ButtonEntity):
         super().__init__(coordinator, mac, "kick")
 
     async def async_press(self) -> None:
-        await self.coordinator.async_kick(self.cam, "knappen trycktes", manual=True)
+        await self.coordinator.async_kick(self.cam, "kick button pressed", manual=True)
         await self.coordinator.async_request_refresh()

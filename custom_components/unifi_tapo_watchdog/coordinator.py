@@ -192,17 +192,17 @@ class WatchdogCoordinator(DataUpdateCoordinator[dict[str, CameraState]]):
         switch = self._opt(CONF_POWER_SWITCHES, {}).get(cam.mac)
 
         if cam.state == STATE_ZOMBIE and self._opt(CONF_KICK_ENABLED, True) and not capped:
-            await self.async_kick(cam, f"svarar inte på port {self._opt(CONF_PROBE_PORT, DEFAULT_PROBE_PORT)} sedan {outage} min men är ansluten till WiFi")
+            await self.async_kick(cam, f"no answer on port {self._opt(CONF_PROBE_PORT, DEFAULT_PROBE_PORT)} for {outage} min while connected to Wi-Fi")
         elif cam.state == STATE_OFFLINE and switch and not capped:
             self._busy.add(cam.mac)
             self.hass.async_create_task(
-                self._power_cycle(cam, switch, f"inte på WiFi sedan {outage} min")
+                self._power_cycle(cam, switch, f"not on Wi-Fi for {outage} min")
             )
         elif not cam.notified_this_outage:
-            why = "dagens tak för åtgärder är nått" if capped else (
-                "inte på WiFi och ingen strömbrytare vald" if cam.state == STATE_OFFLINE else "utkastning är avstängd"
+            why = "daily action limit reached" if capped else (
+                "not on Wi-Fi and no power switch selected" if cam.state == STATE_OFFLINE else "kicking is turned off"
             )
-            await self._record(cam, ACTION_NOTIFY_ONLY, f"nere sedan {outage} min, {why}", count=False)
+            await self._record(cam, ACTION_NOTIFY_ONLY, f"down for {outage} min, {why}", count=False)
             cam.notified_this_outage = True
 
     # ---- actions -------------------------------------------------------
@@ -221,7 +221,7 @@ class WatchdogCoordinator(DataUpdateCoordinator[dict[str, CameraState]]):
             await self.hass.services.async_call("homeassistant", "turn_off", {"entity_id": switch}, blocking=True)
             await asyncio.sleep(off_s)
             await self.hass.services.async_call("homeassistant", "turn_on", {"entity_id": switch}, blocking=True)
-            await self._record(cam, ACTION_POWER_CYCLE, f"{reason}; strömmen bruten {off_s} s via {switch}")
+            await self._record(cam, ACTION_POWER_CYCLE, f"{reason}; power cut for {off_s} s via {switch}")
         except Exception as err:  # noqa: BLE001 - any service failure must not kill the watchdog
             _LOGGER.warning("Power cycle of %s via %s failed: %s", cam.name, switch, err)
         finally:
@@ -242,9 +242,9 @@ class WatchdogCoordinator(DataUpdateCoordinator[dict[str, CameraState]]):
         if service := self._opt(CONF_NOTIFY_SERVICE, ""):
             domain, _, name = service.partition(".")
             text = {
-                ACTION_KICK: "kastades ut från WiFi",
-                ACTION_POWER_CYCLE: "fick strömmen bruten",
-                ACTION_NOTIFY_ONLY: "är nere",
+                ACTION_KICK: "was kicked off Wi-Fi",
+                ACTION_POWER_CYCLE: "was power cycled",
+                ACTION_NOTIFY_ONLY: "is down",
             }[action]
             try:
                 await self.hass.services.async_call(

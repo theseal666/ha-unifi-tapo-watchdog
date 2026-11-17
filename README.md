@@ -78,7 +78,7 @@ camera: TAPO Nere
 mac: 3c:6a:d2:dc:c0:0d
 ip: 192.168.30.51
 action: kick          # kick | power_cycle | notify_only
-reason: "svarar inte på port 554 sedan 5 min men är ansluten till WiFi"
+reason: "no answer on port 554 for 5 min while connected to Wi-Fi"
 ```
 
 ## Tips for Tapo cameras

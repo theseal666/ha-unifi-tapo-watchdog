@@ -1,6 +1,10 @@
 {
   "domain": "unifi_tapo_watchdog",
   "name": "UniFi Tapo Watchdog",
+  "categories": [
+    "security_safety.cameras",
+    "computers_network.monitoring"
+  ],
   "codeowners": [
     "@theseal666"
   ],
@@ -10,5 +14,5 @@
   "iot_class": "local_polling",
   "issue_tracker": "https://github.com/theseal666/ha-unifi-tapo-watchdog/issues",
   "requirements": [],
-  "version": "0.1.1"
+  "version": "0.1.2"
 }
