@@ -59,6 +59,7 @@ class CameraState:
     name: str
     state: str = STATE_OK
     ip: str | None = None
+    last_good_ip: str | None = None
     ap_mac: str | None = None
     signal: int | None = None
     associated: bool = False
@@ -162,17 +163,37 @@ class WatchdogCoordinator(DataUpdateCoordinator[dict[str, CameraState]]):
             conn = connected.get(cam.mac)
             rec = known.get(cam.mac, {})
             cam.associated = conn is not None
-            cam.ip = (conn or {}).get("ip") or rec.get("fixed_ip") or rec.get("last_ip") or cam.ip
             cam.ap_mac = (conn or {}).get("ap_mac")
             cam.signal = (conn or {}).get("signal")
             if rec.get("name"):
                 cam.name = rec["name"]
-            if cam.ip:
-                cam.reachable, detail = await self.hass.async_add_executor_job(
-                    _probe, cam.ip, port, timeout, attempts
+
+            # UniFi's idea of a client's IP is not always current: the "ip" of a
+            # connected client can briefly show an address the camera used
+            # before, and "last_ip" can be stale for days. Try the reservation
+            # first, then the address that answered last time, then the rest.
+            candidates: list[str] = []
+            for ip in (
+                rec.get("fixed_ip") if rec.get("use_fixedip") else None,
+                cam.last_good_ip,
+                (conn or {}).get("ip"),
+                rec.get("last_ip"),
+            ):
+                if ip and ip not in candidates:
+                    candidates.append(ip)
+
+            cam.reachable, details = False, []
+            for i, ip in enumerate(candidates):
+                ok, detail = await self.hass.async_add_executor_job(
+                    _probe, ip, port, timeout, attempts if i == 0 else 1
                 )
-            else:
-                cam.reachable, detail = False, "no IP address known"
+                details.append(f"{ip}: {detail}")
+                if ok:
+                    cam.reachable, cam.ip, cam.last_good_ip = True, ip, ip
+                    break
+            if not cam.reachable:
+                cam.ip = candidates[0] if candidates else cam.ip
+            detail = " | ".join(details) or "no IP address known"
 
             if cam.reachable:
                 cam.state = STATE_OK
@@ -185,8 +206,8 @@ class WatchdogCoordinator(DataUpdateCoordinator[dict[str, CameraState]]):
                 cam.state = STATE_ZOMBIE if cam.associated else STATE_OFFLINE
                 if cam.bad_since is None:
                     _LOGGER.info(
-                        "%s does not answer on %s:%s (%s, %s)",
-                        cam.name, cam.ip, port,
+                        "%s does not answer on port %s (%s; %s)",
+                        cam.name, port,
                         "on Wi-Fi" if cam.associated else "not on Wi-Fi", detail,
                     )
                 else:
