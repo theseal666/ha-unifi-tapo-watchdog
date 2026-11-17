@@ -22,6 +22,8 @@
           "cooldown_minutes": "Minutes between actions on the same camera",
           "max_actions_per_day": "Max actions per camera per day",
           "probe_port": "Port to probe (RTSP = 554)",
+          "probe_timeout": "Seconds to wait for an answer",
+          "probe_attempts": "Attempts before a check counts as failed",
           "kick_enabled": "Kick a silent camera off Wi-Fi",
           "power_off_seconds": "Seconds without power when power cycling",
           "notify_service": "Notify service (optional, e.g. notify.mobile_app_phone)"
@@ -48,6 +50,8 @@
           "cooldown_minutes": "Minutes between actions on the same camera",
           "max_actions_per_day": "Max actions per camera per day",
           "probe_port": "Port to probe (RTSP = 554)",
+          "probe_timeout": "Seconds to wait for an answer",
+          "probe_attempts": "Attempts before a check counts as failed",
           "kick_enabled": "Kick a silent camera off Wi-Fi",
           "power_off_seconds": "Seconds without power when power cycling",
           "notify_service": "Notify service (optional, e.g. notify.mobile_app_phone)"

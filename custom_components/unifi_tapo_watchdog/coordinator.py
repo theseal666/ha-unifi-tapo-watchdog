@@ -36,7 +36,11 @@ from .const import (
     DEFAULT_THRESHOLD,
     DOMAIN,
     EVENT_ACTION,
-    PROBE_TIMEOUT,
+    CONF_PROBE_ATTEMPTS,
+    CONF_PROBE_TIMEOUT,
+    DEFAULT_PROBE_ATTEMPTS,
+    DEFAULT_PROBE_TIMEOUT,
+    PROBE_RETRY_DELAY,
     STATE_OFFLINE,
     STATE_OK,
     STATE_ZOMBIE,
@@ -87,13 +91,23 @@ class CameraState:
         }
 
 
-async def _probe(ip: str, port: int) -> bool:
-    """True if the camera accepts a TCP connection on the port (RTSP by default)."""
-    try:
-        _, writer = await asyncio.wait_for(
-            asyncio.open_connection(ip, port), timeout=PROBE_TIMEOUT
-        )
-    except (OSError, asyncio.TimeoutError):
+async def _probe(ip: str, port: int, timeout: float, attempts: int) -> bool:
+    """True if the camera accepts a TCP connection on the port (RTSP by default).
+
+    A busy camera on Wi-Fi sometimes misses a single connection attempt, so it
+    only counts as silent when every attempt fails.
+    """
+    for attempt in range(max(1, attempts)):
+        if attempt:
+            await asyncio.sleep(PROBE_RETRY_DELAY)
+        try:
+            _, writer = await asyncio.wait_for(
+                asyncio.open_connection(ip, port), timeout=timeout
+            )
+        except (OSError, asyncio.TimeoutError):
+            continue
+        break
+    else:
         return False
     writer.close()
     try:
@@ -138,6 +152,8 @@ class WatchdogCoordinator(DataUpdateCoordinator[dict[str, CameraState]]):
             raise UpdateFailed(str(err)) from err
 
         port = int(self._opt(CONF_PROBE_PORT, DEFAULT_PROBE_PORT))
+        timeout = float(self._opt(CONF_PROBE_TIMEOUT, DEFAULT_PROBE_TIMEOUT))
+        attempts = int(self._opt(CONF_PROBE_ATTEMPTS, DEFAULT_PROBE_ATTEMPTS))
         now = dt_util.now()
 
         async def check(cam: CameraState) -> None:
@@ -149,7 +165,7 @@ class WatchdogCoordinator(DataUpdateCoordinator[dict[str, CameraState]]):
             cam.signal = (conn or {}).get("signal")
             if rec.get("name"):
                 cam.name = rec["name"]
-            cam.reachable = bool(cam.ip) and await _probe(cam.ip, port)
+            cam.reachable = bool(cam.ip) and await _probe(cam.ip, port, timeout, attempts)
 
             if cam.reachable:
                 cam.state = STATE_OK

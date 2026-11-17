@@ -14,6 +14,8 @@ CONF_THRESHOLD = "threshold_minutes"
 CONF_COOLDOWN = "cooldown_minutes"
 CONF_MAX_ACTIONS = "max_actions_per_day"
 CONF_PROBE_PORT = "probe_port"
+CONF_PROBE_TIMEOUT = "probe_timeout"
+CONF_PROBE_ATTEMPTS = "probe_attempts"
 CONF_KICK_ENABLED = "kick_enabled"
 CONF_POWER_SWITCHES = "power_switches"
 CONF_POWER_OFF_SECONDS = "power_off_seconds"
@@ -27,7 +29,9 @@ DEFAULT_MAX_ACTIONS = 6
 DEFAULT_PROBE_PORT = 554
 DEFAULT_POWER_OFF_SECONDS = 15
 
-PROBE_TIMEOUT = 3
+DEFAULT_PROBE_TIMEOUT = 5
+DEFAULT_PROBE_ATTEMPTS = 2
+PROBE_RETRY_DELAY = 2  # seconds between attempts
 
 # Camera states
 STATE_OK = "ok"

@@ -22,6 +22,8 @@
           "cooldown_minutes": "Minuter mellan åtgärder på samma kamera",
           "max_actions_per_day": "Max antal åtgärder per kamera och dygn",
           "probe_port": "Port att testa (RTSP = 554)",
+          "probe_timeout": "Sekunder att vänta på svar",
+          "probe_attempts": "Försök innan en kontroll räknas som misslyckad",
           "kick_enabled": "Kasta ut en tyst kamera från WiFi",
           "power_off_seconds": "Sekunder utan ström vid omstart",
           "notify_service": "Notistjänst (valfritt, t.ex. notify.mobile_app_telefon)"
@@ -48,6 +50,8 @@
           "cooldown_minutes": "Minuter mellan åtgärder på samma kamera",
           "max_actions_per_day": "Max antal åtgärder per kamera och dygn",
           "probe_port": "Port att testa (RTSP = 554)",
+          "probe_timeout": "Sekunder att vänta på svar",
+          "probe_attempts": "Försök innan en kontroll räknas som misslyckad",
           "kick_enabled": "Kasta ut en tyst kamera från WiFi",
           "power_off_seconds": "Sekunder utan ström vid omstart",
           "notify_service": "Notistjänst (valfritt, t.ex. notify.mobile_app_telefon)"

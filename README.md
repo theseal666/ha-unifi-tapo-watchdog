@@ -52,6 +52,8 @@ All settings can be changed later under **Configure**.
 | Minutes between actions | 15 min | Cooldown per camera |
 | Max actions per day | 6 | Per camera; after that you only get a notification |
 | Port to probe | 554 | RTSP. Use 443 or another port for cameras without RTSP |
+| Seconds to wait for an answer | 5 s | Per attempt |
+| Attempts per check | 2 | A camera only counts as silent when every attempt fails. Busy cameras on Wi-Fi sometimes miss one |
 | Kick a silent camera off Wi-Fi | on | Turn off to only watch and notify |
 | Seconds without power | 15 s | Used when power cycling through a switch |
 | Notify service | — | For example `notify.mobile_app_phone` |
