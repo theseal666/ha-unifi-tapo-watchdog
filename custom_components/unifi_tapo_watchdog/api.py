@@ -83,6 +83,8 @@ class UniFiClient:
                 )
         except aiohttp.ClientError as err:
             raise UniFiError(f"Cannot reach UniFi: {err}") from err
+        except TimeoutError as err:
+            raise UniFiError("UniFi did not answer the login in time") from err
 
     async def _request(
         self, method: str, path: str, payload: dict[str, Any] | None = None
@@ -111,6 +113,13 @@ class UniFiClient:
                         body = await resp.json(content_type=None)
                 except aiohttp.ClientError as err:
                     raise UniFiError(f"Cannot reach UniFi: {err}") from err
+                except TimeoutError as err:
+                    raise UniFiError(f"{path}: UniFi did not answer in time") from err
+                except ValueError as err:
+                    # The console now and then cuts a large answer short
+                    raise UniFiError(f"{path}: incomplete answer from UniFi ({err})") from err
+                if not isinstance(body, dict):
+                    raise UniFiError(f"{path}: unexpected answer from UniFi")
                 meta = body.get("meta", {})
                 if meta.get("rc") != "ok":
                     raise UniFiError(f"{path}: {meta.get('msg', 'error')}")
